@@ -9,8 +9,8 @@
         body { background-color: #dadbd3; display: flex; justify-content: center; height: 100vh; }
         #chat-container { width: 100%; max-width: 450px; background: #e5ddd5; display: flex; flex-direction: column; position: relative; border: 1px solid #ccc; }
         .header { background: #075e54; color: white; padding: 15px; font-weight: bold; }
-        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; background-image: url('https://githubusercontent.com'); }
-        .msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 15px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; background-image: url('https://githubusercontent.com'); background-size: contain; }
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 15px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); word-wrap: break-word; }
         .me { align-self: flex-end; background-color: #dcf8c6; border-top-right-radius: 0; }
         .other { align-self: flex-start; background-color: white; border-top-left-radius: 0; }
         .msg-info { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 10px; opacity: 0.6; margin-top: 4px; }
@@ -43,9 +43,13 @@
     </div>
 </div>
 
-<script src="http://localhost:5000/socket.io/socket.io.js"></script>
+<!-- Updated Socket.io Library Link -->
+<script src="https://socket.io"></script>
+
 <script>
-    const socket = io("https://quicktalk-ubvb.onrender.com");
+    // Your Render Live URL
+    const socket = io("https://onrender.com");
+
     const myName = prompt("Enter your name:") || "Guest";
     const msgContainer = document.getElementById("messages");
     const msgInput = document.getElementById("msgInput");
@@ -84,10 +88,8 @@
         }
     }
 
-    // सेंड बटन इवेंट
     sendBtn.addEventListener("click", handleSend);
 
-    // Enter बटन इवेंट
     msgInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") handleSend();
     });
@@ -99,6 +101,11 @@
 
     socket.on("receive_message", (data) => {
         appendMessage(data);
+    });
+
+    // Connection check for console
+    socket.on("connect", () => {
+        console.log("Connected to Render Server! ✅");
     });
 </script>
 </body>
