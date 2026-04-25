@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickTalk WhatsApp</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #dadbd3; display: flex; justify-content: center; height: 100vh; }
+        #chat-container { width: 100%; max-width: 450px; background: #e5ddd5; display: flex; flex-direction: column; position: relative; border: 1px solid #ccc; }
+        .header { background: #075e54; color: white; padding: 15px; font-weight: bold; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; background-image: url('https://githubusercontent.com'); }
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 15px; position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .me { align-self: flex-end; background-color: #dcf8c6; border-top-right-radius: 0; }
+        .other { align-self: flex-start; background-color: white; border-top-left-radius: 0; }
+        .msg-info { display: flex; justify-content: flex-end; align-items: center; gap: 4px; font-size: 10px; opacity: 0.6; margin-top: 4px; }
+        .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        #msgInput { flex: 1; border: none; padding: 12px; border-radius: 25px; outline: none; font-size: 15px; }
+        .send-btn { background: #075e54; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+        #emoji-panel { display: none; position: absolute; bottom: 70px; left: 10px; background: white; padding: 10px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 10; }
+        .emoji { cursor: pointer; font-size: 20px; padding: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div class="header">QuickTalk</div>
+    <div id="messages"></div>
+
+    <div id="emoji-panel">
+        <span class="emoji" onclick="addEmoji('😊')">😊</span>
+        <span class="emoji" onclick="addEmoji('😂')">😂</span>
+        <span class="emoji" onclick="addEmoji('❤️')">❤️</span>
+        <span class="emoji" onclick="addEmoji('🔥')">🔥</span>
+        <span class="emoji" onclick="addEmoji('😍')">😍</span>
+        <span class="emoji" onclick="addEmoji('👍')">👍</span>
+    </div>
+
+    <div class="input-area">
+        <button onclick="toggleEmoji()" style="border:none; background:none; font-size:22px; cursor:pointer;">😊</button>
+        <input type="text" id="msgInput" placeholder="Type a message..." autocomplete="off">
+        <button class="send-btn" id="sendBtn">➤</button>
+    </div>
+</div>
+
+<script src="http://localhost:5000/socket.io/socket.io.js"></script>
+<script>
+    const socket = io("http://localhost:5000");
+    const myName = prompt("Enter your name:") || "Guest";
+    const msgContainer = document.getElementById("messages");
+    const msgInput = document.getElementById("msgInput");
+    const sendBtn = document.getElementById("sendBtn");
+
+    function toggleEmoji() {
+        const panel = document.getElementById("emoji-panel");
+        panel.style.display = panel.style.display === "block" ? "none" : "block";
+    }
+
+    function addEmoji(emoji) {
+        msgInput.value += emoji;
+        msgInput.focus();
+    }
+
+    function appendMessage(data) {
+        const isMe = data.user === myName;
+        const div = document.createElement("div");
+        div.className = `msg ${isMe ? 'me' : 'other'}`;
+        div.innerHTML = `
+            <div style="font-weight:bold; font-size:11px; color:#075e54">${isMe ? 'You' : data.user}</div>
+            ${data.message}
+            <div class="msg-info">${data.time} ${isMe ? '<span style="color:#34b7f1">✓✓</span>' : ''}</div>
+        `;
+        msgContainer.appendChild(div);
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+
+    function handleSend() {
+        const text = msgInput.value.trim();
+        if (text !== "") {
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+            socket.emit("send_message", { user: myName, message: text, time: time });
+            msgInput.value = "";
+            document.getElementById("emoji-panel").style.display = "none";
+        }
+    }
+
+    // सेंड बटन इवेंट
+    sendBtn.addEventListener("click", handleSend);
+
+    // Enter बटन इवेंट
+    msgInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSend();
+    });
+
+    socket.on("load_messages", (msgs) => {
+        msgContainer.innerHTML = "";
+        msgs.forEach(appendMessage);
+    });
+
+    socket.on("receive_message", (data) => {
+        appendMessage(data);
+    });
+</script>
+</body>
+</html>
