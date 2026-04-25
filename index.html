@@ -43,12 +43,12 @@
     </div>
 </div>
 
-<!-- Updated Socket.io Library Link -->
+<!-- फिक्स की हुई लाइब्रेरी लिंक -->
 <script src="https://socket.io"></script>
 
 <script>
-    // Your Render Live URL
-    const socket = io("https://onrender.com");
+    // फिक्स किया हुआ रेंडर लिंक (अपना असली लिंक ही रखें)
+    const socket = io("https://quicktalk-ubvb.onrender.com");
 
     const myName = prompt("Enter your name:") || "Guest";
     const msgContainer = document.getElementById("messages");
@@ -89,10 +89,7 @@
     }
 
     sendBtn.addEventListener("click", handleSend);
-
-    msgInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") handleSend();
-    });
+    msgInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleSend(); });
 
     socket.on("load_messages", (msgs) => {
         msgContainer.innerHTML = "";
@@ -103,7 +100,6 @@
         appendMessage(data);
     });
 
-    // Connection check for console
     socket.on("connect", () => {
         console.log("Connected to Render Server! ✅");
     });
