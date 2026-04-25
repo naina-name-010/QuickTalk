@@ -2,12 +2,17 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const path = require("path"); // फाइल पाथ के लिए ज़रूरी है
 const { Server } = require("socket.io");
 
 const app = express();
 app.use(cors());
 
-// MongoDB Connection (Using Environment Variable)
+// --- 1. FRONTEND FILES CONNECT KARNA ---
+// यह लाइन रेंडर को बताती है कि हमारी 'client' फोल्डर की फाइल्स कहाँ हैं
+app.use(express.static(path.join(__dirname, "../client")));
+
+// MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI;
 
 mongoose.connect(MONGO_URI)
@@ -50,6 +55,12 @@ io.on("connection", async (socket) => {
     socket.on("disconnect", () => {
         console.log("User Disconnected");
     });
+});
+
+// --- 2. CATCH-ALL ROUTE ---
+// अगर कोई भी लिंक खोलेगा, तो उसे index.html ही दिखेगी
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client", "index.html"));
 });
 
 const PORT = process.env.PORT || 5000;
